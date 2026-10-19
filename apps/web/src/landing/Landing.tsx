@@ -390,7 +390,38 @@ function Schedule() {
   )
 }
 
+type PublicPlan = { id: string; name: string; shortCode: string; pricePaise: number; cycleMonths: number; creditsPerCycle: number | null; weeklyCap: number | null }
+
+// WEB-2: prices come from the same plan records as the app; config.ts is the fallback copy
+function usePlans() {
+  const [list, setList] = useState(plans)
+  useEffect(() => {
+    fetch('/api/public/plans')
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { plans: PublicPlan[] }) => {
+        if (!d.plans.length) return
+        setList(
+          d.plans.map((p) => {
+            const copy = plans.find((c) => c.name === p.name)
+            const price = `₹${(p.pricePaise / 100).toLocaleString('en-IN')}`
+            return {
+              id: p.id,
+              name: p.name,
+              price: copy?.price.startsWith('From') ? `From ${price}` : price,
+              per: p.cycleMonths === 1 ? 'a month' : `for ${p.cycleMonths} months`,
+              points: copy?.points ?? [p.creditsPerCycle ? `${p.creditsPerCycle} classes a cycle${p.weeklyCap ? `, ${p.weeklyCap} a week` : ''}` : 'Unlimited classes'],
+              featured: copy?.featured ?? false,
+            }
+          }),
+        )
+      })
+      .catch(() => {})
+  }, [])
+  return list
+}
+
 function Plans() {
+  const plans = usePlans()
   return (
     <section className="section" id="plans">
       <div className="wrap">

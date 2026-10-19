@@ -305,6 +305,7 @@ model Booking {
   status       BookingStatus @default(BOOKED)
   creditUsed   Boolean       @default(false)
   makeupUsed   Boolean       @default(false)
+  freeCancel   Boolean       @default(false) // CLS-6: class changed, cancel without using the credit
   cancelledAt  DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -457,6 +458,7 @@ model LoginCode {
   id        String   @id @default(cuid())
   accountId String
   channel   Channel
+  purpose   String   @default("login") // "staff" once the password step passed
   codeHash  String
   expiresAt DateTime
   attempts  Int      @default(0)

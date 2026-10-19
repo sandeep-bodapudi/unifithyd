@@ -10,7 +10,9 @@
     "dev:web": "npm run dev -w @unifit/web",
     "dev:api": "npm run dev -w @unifit/api",
     "build": "npm run build -w @unifit/web && npm run build -w @unifit/api",
-    "logo": "node brand/tools/gen-logo.mjs brand/logo"
+    "logo": "node brand/tools/gen-logo.mjs brand/logo",
+    "db:local": "\"C:/Program Files/MariaDB 12.3/bin/mariadbd.exe\" --defaults-file=.data/mariadb/my.ini --console",
+    "test": "npm test -w @unifit/api"
   },
   "devDependencies": {
     "@fontsource/poppins": "^5.3.0",
