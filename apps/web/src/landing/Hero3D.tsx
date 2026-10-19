@@ -1,7 +1,7 @@
 // 3D hero: the Unifit "U" extruded from the logo geometry, floating among
 // brand-coloured rings and sparks. Follows the pointer and the scroll position.
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Float, Sparkles, RoundedBox } from '@react-three/drei'
+import { Float, Sparkles } from '@react-three/drei'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { MARK_H, MARK_W } from '../brand/Logo'
@@ -109,27 +109,93 @@ function Ring({ radius, color, speed, tilt }: { radius: number; color: string; s
   )
 }
 
-// Small floating "plates" in brand colours, like weights orbiting the mark
+// Gym equipment orbiting the mark: dumbbells, a kettlebell and a weight plate
+const METAL = '#1D3E6E'
+
+function Dumbbell({ color = GREEN }: { color?: string }) {
+  return (
+    <group rotation={[0, 0, Math.PI / 2]}>
+      <mesh>
+        <cylinderGeometry args={[0.045, 0.045, 0.62, 16]} />
+        <meshStandardMaterial color="#C9D3E3" metalness={0.8} roughness={0.25} />
+      </mesh>
+      {[-0.24, 0.24].map((y) => (
+        <group key={y} position={[0, y, 0]}>
+          <mesh>
+            <cylinderGeometry args={[0.15, 0.15, 0.09, 28]} />
+            <meshStandardMaterial color={METAL} metalness={0.5} roughness={0.35} />
+          </mesh>
+          <mesh position={[0, y > 0 ? 0.07 : -0.07, 0]}>
+            <cylinderGeometry args={[0.12, 0.12, 0.06, 28]} />
+            <meshStandardMaterial color={color} metalness={0.3} roughness={0.35} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function Kettlebell() {
+  return (
+    <group>
+      <mesh>
+        <sphereGeometry args={[0.24, 32, 24]} />
+        <meshStandardMaterial color={GREEN} metalness={0.25} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.25, 0]}>
+        <torusGeometry args={[0.13, 0.035, 12, 32, Math.PI]} />
+        <meshStandardMaterial color={METAL} metalness={0.6} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, -0.2, 0]}>
+        <cylinderGeometry args={[0.15, 0.17, 0.06, 28]} />
+        <meshStandardMaterial color={METAL} metalness={0.5} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function Plate({ color = YELLOW }: { color?: string }) {
+  return (
+    <group>
+      <mesh>
+        <torusGeometry args={[0.2, 0.09, 18, 40]} />
+        <meshStandardMaterial color={METAL} metalness={0.5} roughness={0.35} />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[0.29, 0.018, 10, 48]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.25} />
+      </mesh>
+    </group>
+  )
+}
+
 function Orbiters() {
   const group = useRef<THREE.Group>(null)
   useFrame((_, delta) => {
     if (group.current) group.current.rotation.y += delta * 0.15
   })
-  const items: { pos: [number, number, number]; color: string; size: number }[] = [
-    { pos: [2.6, 1.1, -0.6], color: GREEN, size: 0.32 },
-    { pos: [-2.7, -0.9, 0.4], color: SLATE, size: 0.26 },
-    { pos: [-2.1, 1.6, -1.2], color: YELLOW, size: 0.16 },
-    { pos: [2.2, -1.5, 0.8], color: BLUE, size: 0.22 },
-  ]
   return (
     <group ref={group}>
-      {items.map((it, i) => (
-        <Float key={i} speed={1.5 + i * 0.3} rotationIntensity={1.4} floatIntensity={1.2}>
-          <RoundedBox args={[it.size, it.size, it.size]} radius={it.size * 0.25} position={it.pos}>
-            <meshStandardMaterial color={it.color} roughness={0.35} metalness={0.2} />
-          </RoundedBox>
-        </Float>
-      ))}
+      <Float speed={1.6} rotationIntensity={1.2} floatIntensity={1.1}>
+        <group position={[2.6, 1.2, -0.4]} rotation={[0.4, 0.3, 0.5]} scale={1.6}>
+          <Dumbbell />
+        </group>
+      </Float>
+      <Float speed={1.3} rotationIntensity={0.8} floatIntensity={1.3}>
+        <group position={[-2.7, -1.1, 0.6]} rotation={[0.2, -0.4, -0.2]} scale={1.35}>
+          <Kettlebell />
+        </group>
+      </Float>
+      <Float speed={1.9} rotationIntensity={1.6} floatIntensity={1}>
+        <group position={[-2.1, 1.55, -1.1]} rotation={[1, 0.2, 0]} scale={1.25}>
+          <Plate />
+        </group>
+      </Float>
+      <Float speed={1.5} rotationIntensity={1.4} floatIntensity={1.2}>
+        <group position={[2.2, -1.45, 0.8]} rotation={[-0.3, 0.6, -0.8]} scale={1.2}>
+          <Dumbbell color={BLUE} />
+        </group>
+      </Float>
     </group>
   )
 }

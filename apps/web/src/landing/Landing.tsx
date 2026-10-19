@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom'
 import { LogoLockup, Mark } from '../brand/Logo'
 import { plans, studio } from '../config'
 import { ThemeToggle } from '../ThemeToggle'
+import { GroupFigure, HeartbeatLine, PressFigure, SkipFigure } from './Figures'
+import { ClassFlow, FirstVisit, KidsSection, Pillars, PlanQuiz } from './FitnessSections'
 import './landing.css'
+import './fitness.css'
 
 const Hero3D = lazy(() => import('./Hero3D'))
 
@@ -110,6 +113,8 @@ function Hero() {
   return (
     <section className="hero" id="top">
       <div className="hero__glow" aria-hidden="true" />
+      <div className="hero__floor" aria-hidden="true" />
+      <HeartbeatLine />
       <div className="wrap hero__grid">
         <div className="hero__copy">
           <p className="eyebrow">
@@ -181,32 +186,6 @@ function Marquee() {
   )
 }
 
-const programIcons = {
-  kids: (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <circle cx="24" cy="12" r="6" />
-      <path d="M14 42l4-16-6-4 4-4 8 5 8-5 4 4-6 4 4 16" />
-    </svg>
-  ),
-  adult: (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <rect x="4" y="18" width="6" height="12" rx="2" />
-      <rect x="38" y="18" width="6" height="12" rx="2" />
-      <rect x="10" y="14" width="5" height="20" rx="2" />
-      <rect x="33" y="14" width="5" height="20" rx="2" />
-      <path d="M15 24h18" />
-    </svg>
-  ),
-  group: (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <circle cx="14" cy="16" r="5" />
-      <circle cx="34" cy="16" r="5" />
-      <circle cx="24" cy="12" r="5" />
-      <path d="M4 40c1-8 5-12 10-12s9 4 10 12M24 40c1-8 5-12 10-12s9 4 10 12" />
-    </svg>
-  ),
-}
-
 function Programs() {
   const items = [
     {
@@ -239,7 +218,7 @@ function Programs() {
           {items.map((p, i) => (
             <div key={p.id} data-reveal style={{ transitionDelay: `${i * 90}ms` }}>
               <Tilt className="card program">
-                <div className="program__icon">{programIcons[p.id]}</div>
+                <div className={`program__stage program__stage--${p.id}`}>{p.id === 'kids' ? <SkipFigure /> : p.id === 'adult' ? <PressFigure /> : <GroupFigure />}</div>
                 <h3>{p.title}</h3>
                 <p>{p.text}</p>
                 <span className="pill">{p.tag}</span>
@@ -420,8 +399,7 @@ function usePlans() {
   return list
 }
 
-function Plans() {
-  const plans = usePlans()
+function Plans({ plans }: { plans: ReturnType<typeof usePlans> }) {
   return (
     <section className="section" id="plans">
       <div className="wrap">
@@ -520,6 +498,16 @@ function Trial() {
     }
   }
   const [forWhom, setForWhom] = useState('self')
+  const [program, setProgram] = useState('group')
+  useEffect(() => {
+    const on = (e: Event) => {
+      const p = (e as CustomEvent<string>).detail
+      setProgram(p)
+      setForWhom(p === 'kids' ? 'child' : 'self')
+    }
+    window.addEventListener('unifit:program', on)
+    return () => window.removeEventListener('unifit:program', on)
+  }, [])
   return (
     <section className="section trial" id="trial">
       <div className="wrap trial__grid">
@@ -555,7 +543,7 @@ function Trial() {
               <div className="form__row">
                 <label>
                   Program
-                  <select name="program" defaultValue="group">
+                  <select name="program" value={program} onChange={(e) => setProgram(e.target.value)}>
                     <option value="group">Group Classes</option>
                     <option value="kids">Kids Training</option>
                     <option value="adult">Adult Training</option>
@@ -637,6 +625,7 @@ function Footer() {
 
 export default function Landing() {
   useReveal()
+  const planList = usePlans()
   return (
     <>
       <a href="#programs" className="skip">
@@ -646,11 +635,16 @@ export default function Landing() {
       <main>
         <Hero />
         <Marquee />
+        <Pillars />
         <Programs />
+        <ClassFlow />
         <HowItWorks />
+        <KidsSection />
         <Modes />
         <Schedule />
-        <Plans />
+        <PlanQuiz plans={planList} />
+        <Plans plans={planList} />
+        <FirstVisit />
         <Faq />
         <Trial />
       </main>

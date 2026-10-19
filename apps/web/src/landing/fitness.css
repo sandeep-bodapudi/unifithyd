@@ -1,0 +1,569 @@
+/* Fitness look: slanted edges that echo the logo's cut, gym-floor lines,
+   tape-stripe accents, rep-counter numbers and animated exercise figures. */
+
+/* ---------- Slanted section edges (the logo's rising cut) ---------- */
+.section--alt,
+.kids,
+.quiz {
+  position: relative;
+  clip-path: polygon(0 3.5vw, 100% 0, 100% calc(100% - 3.5vw), 0 100%);
+  padding-top: calc(104px + 3.5vw);
+  padding-bottom: calc(104px + 3.5vw);
+  margin: -2vw 0;
+}
+@media (max-width: 860px) {
+  .section--alt,
+  .kids,
+  .quiz {
+    padding-top: calc(72px + 3.5vw);
+    padding-bottom: calc(72px + 3.5vw);
+  }
+}
+
+/* Faint diagonal "tape" texture on alternate sections */
+.section--alt::before,
+.kids::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-33deg, transparent 0 46px, color-mix(in srgb, var(--text) 3.5%, transparent) 46px 48px);
+  pointer-events: none;
+}
+.section--alt > .wrap,
+.kids > .wrap {
+  position: relative;
+}
+
+/* Hazard-tape style eyebrow underline */
+.section__head .eyebrow::after {
+  content: '';
+  width: 34px;
+  height: 6px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(-45deg, var(--green) 0 6px, var(--yellow) 6px 12px);
+  margin-left: 4px;
+}
+
+/* Heavier, athletic headings */
+.section h2 {
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Hero: gym floor and heartbeat ---------- */
+.hero__floor {
+  position: absolute;
+  inset: auto -20% -10% -20%;
+  height: 45%;
+  background:
+    linear-gradient(to top, color-mix(in srgb, var(--bg) 0%, transparent), var(--bg) 92%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--green) 22%, transparent) 0 2px, transparent 2px 90px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--green) 14%, transparent) 0 2px, transparent 2px 60px);
+  transform: perspective(500px) rotateX(62deg);
+  transform-origin: bottom;
+  pointer-events: none;
+  opacity: 0.55;
+}
+.ecg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12%;
+  width: 100%;
+  height: 90px;
+  pointer-events: none;
+  opacity: 0.6;
+  filter: drop-shadow(0 0 6px var(--glow));
+}
+.ecg__path {
+  stroke-dasharray: 0.16 1;
+  stroke-dashoffset: 1.16;
+  animation: ecg 3.2s linear infinite;
+}
+@keyframes ecg {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.hero__grid,
+.hero__scroll {
+  z-index: 1;
+}
+
+/* ---------- Animated figures ---------- */
+.fig {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--text);
+  overflow: visible;
+}
+.fig--icon {
+  width: 56px;
+  height: 56px;
+}
+
+.program__stage {
+  position: relative;
+  height: 150px;
+  margin: -6px -6px 6px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(120px 60px at 50% 92%, color-mix(in srgb, var(--green) 30%, transparent), transparent 70%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--text) 5%, transparent) 0 1px, transparent 1px 28px),
+    var(--surface-2);
+}
+.program__stage .fig {
+  height: 130px;
+  width: auto;
+  max-width: 100%;
+}
+.program__stage--group .fig {
+  width: 92%;
+  height: auto;
+}
+
+/* ---------- Pillars ---------- */
+.pillars__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.pillar {
+  position: relative;
+  padding: 26px 22px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.pillar__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--green) 16%, var(--surface-2));
+  margin-bottom: 16px;
+}
+.pillar__n {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font: 800 italic 54px var(--font-head);
+  color: color-mix(in srgb, var(--text) 7%, transparent);
+  line-height: 1;
+}
+.pillar h3 {
+  font-size: 20px;
+  font-style: italic;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.pillar p {
+  margin: 0;
+  color: var(--text-muted);
+}
+@media (max-width: 960px) {
+  .pillars__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .pillars__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Inside a class ---------- */
+.flow__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 56px;
+  align-items: start;
+}
+.flow__sticky {
+  position: sticky;
+  top: 96px;
+}
+.ring {
+  position: relative;
+  width: min(320px, 70vw);
+  aspect-ratio: 1;
+}
+.ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ring__track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 14;
+}
+.ring__fill {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 14;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.15s linear;
+  filter: drop-shadow(0 0 8px var(--glow));
+}
+.ring__dot {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 3;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+.ring__dot.on {
+  fill: var(--yellow);
+  stroke: var(--yellow);
+}
+.ring__label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+.ring__step {
+  font: 800 italic 64px var(--font-head);
+  color: var(--green);
+  line-height: 1;
+}
+.ring__label strong {
+  font: 700 18px var(--font-head);
+  text-transform: uppercase;
+}
+.flow__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 18px;
+}
+.flow__item {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  min-height: 34vh;
+  opacity: 0.55;
+  transform: scale(0.97);
+  transition: opacity 0.35s ease, transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.flow__item.is-active {
+  opacity: 1;
+  transform: none;
+  border-color: var(--green);
+  box-shadow: 0 24px 50px -28px var(--glow);
+}
+.flow__item.is-done {
+  opacity: 0.8;
+}
+.flow__icon {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+}
+.flow__n {
+  font: 700 12px var(--font-head);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.flow__item h3 {
+  font-size: 22px;
+  font-style: italic;
+  text-transform: uppercase;
+  margin: 4px 0 6px;
+}
+.flow__item p {
+  margin: 0;
+  color: var(--text-muted);
+}
+@media (max-width: 860px) {
+  .flow__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .flow__sticky {
+    position: sticky;
+    top: 72px;
+    z-index: 2;
+    background: var(--bg);
+    margin: 0 -16px;
+    padding: 8px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .flow__sticky .section__head {
+    display: none;
+  }
+  .ring {
+    width: 120px;
+  }
+  .ring__step {
+    font-size: 30px;
+  }
+  .ring__label strong {
+    font-size: 11px;
+  }
+  .flow__item {
+    min-height: 0;
+  }
+}
+
+/* ---------- Kids ---------- */
+.kids {
+  background: color-mix(in srgb, var(--green) 9%, var(--bg));
+}
+.kids__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.kids__item {
+  position: relative;
+}
+.kids__tick {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--action-bg);
+  color: var(--action-text);
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.kids__item h3 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.kids__item p {
+  margin: 0;
+  color: var(--text-muted);
+}
+@media (max-width: 860px) {
+  .kids__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Plan quiz ---------- */
+.quiz {
+  background: radial-gradient(700px 300px at 80% 20%, color-mix(in srgb, var(--blue) 20%, transparent), transparent 70%), color-mix(in srgb, var(--surface) 55%, var(--bg));
+}
+.quiz__card {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px;
+}
+.quiz__bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.quiz__bar span {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+  position: relative;
+}
+.quiz__bar span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--green);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+.quiz__bar span.on::after {
+  transform: none;
+}
+.quiz__count {
+  font: 700 12px var(--font-head);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin: 0 0 8px;
+}
+.quiz__step,
+.quiz__result {
+  animation: quizIn 0.35s ease;
+}
+@keyframes quizIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+.quiz__step h3,
+.quiz__result h3 {
+  font-size: clamp(24px, 4vw, 32px);
+  font-style: italic;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.quiz__opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.quiz__opt {
+  min-height: 56px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: 600 16px var(--font-head);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.quiz__opt:hover {
+  border-color: var(--green);
+  transform: translateY(-2px);
+}
+.quiz__back {
+  margin-top: 16px;
+  background: none;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  min-height: 44px;
+}
+.quiz__price {
+  font: 800 italic 34px var(--font-head);
+  margin: 0 0 8px;
+}
+.quiz__price small {
+  font: 500 15px var(--font-body);
+  color: var(--text-muted);
+}
+.quiz__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+/* ---------- First visit checklist ---------- */
+.visit__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 48px;
+  align-items: start;
+}
+.visit__grid .section__head .muted {
+  margin: 12px 0 24px;
+}
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.checklist li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: border-color 0.3s ease;
+}
+.checklist li.is-done {
+  border-color: color-mix(in srgb, var(--green) 60%, var(--border));
+}
+.checklist__box {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 2px solid var(--border);
+  display: grid;
+  place-items: center;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.checklist__box svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--action-text);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  transition: stroke-dashoffset 0.4s ease 0.1s;
+}
+.checklist li.is-done .checklist__box {
+  background: var(--action-bg);
+  border-color: var(--action-bg);
+}
+.checklist li.is-done .checklist__box svg {
+  stroke-dashoffset: 0;
+}
+.checklist p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+@media (max-width: 860px) {
+  .visit__grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ---------- Buttons get a heartbeat on hover ---------- */
+.btn--primary:hover {
+  animation: beat 0.9s ease;
+}
+@keyframes beat {
+  15% {
+    transform: translateY(-2px) scale(1.05);
+  }
+  30% {
+    transform: translateY(-2px) scale(1);
+  }
+  45% {
+    transform: translateY(-2px) scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecg__path {
+    animation: none;
+    stroke-dasharray: none;
+  }
+  .flow__item {
+    opacity: 1;
+    transform: none;
+  }
+  .btn--primary:hover {
+    animation: none;
+  }
+}
