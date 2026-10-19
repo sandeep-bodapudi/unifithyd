@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@unifit/web", "--", "--port", "5173", "--strictPort"],
+      "port": 5173
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@unifit/api"],
+      "port": 4000
+    }
+  ]
+}

@@ -1,0 +1,524 @@
+// Unifit.hyd data model: PRD v3.0 section 12.
+// Money is in paise (Int). Instants are UTC (DateTime). Calendar days that mean
+// "a day in IST" (membership dates, closures) use @db.Date.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ---------- Accounts and people ----------
+
+enum Role {
+  MEMBER
+  COACH
+  ADMIN
+  OWNER
+}
+
+enum Channel {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+model Account {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  phone          String    @unique
+  phoneVerified  Boolean   @default(false)
+  name           String
+  passwordHash   String? // staff only (Argon2id)
+  roles          AccountRole[]
+  channelPref    Channel   @default(EMAIL)
+  disabled       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  guardianships  Guardian[]
+  consentsGiven  Consent[]
+  loginCodes     LoginCode[]
+  sessions       Session[]
+  messages       MessageLog[]
+  classesCoached Class[]       @relation("ClassCoach")
+  seriesCoached  ClassSeries[] @relation("SeriesCoach")
+  coachPrograms  Program[]     @relation("CoachPrograms")
+}
+
+// MySQL has no list columns, so roles live in their own table
+model AccountRole {
+  accountId String
+  role      Role
+  account   Account @relation(fields: [accountId], references: [id])
+
+  @@id([accountId, role])
+}
+
+enum ProfileKind {
+  ADULT
+  CHILD
+}
+
+model Profile {
+  id            String       @id @default(cuid())
+  memberNo      Int          @unique @default(autoincrement()) // shown as UF0001
+  name          String
+  dob           DateTime     @db.Date
+  kind          ProfileKind
+  photoUrl      String?
+  emergencyNote String?      @db.Text
+  photoConsent  Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  guardians     Guardian[]
+  consents      Consent[]
+  memberships   Membership[]
+  bookings      Booking[]
+  waitlist      Waitlist[]
+  attendance    Attendance[]
+  payments      Payment[]
+  credits       CreditAdjustment[]
+  weights       WeightLog[]
+}
+
+model Guardian {
+  id        String   @id @default(cuid())
+  accountId String
+  profileId String
+  primary   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  account   Account  @relation(fields: [accountId], references: [id])
+  profile   Profile  @relation(fields: [profileId], references: [id])
+
+  @@unique([accountId, profileId])
+}
+
+model Consent {
+  id           String   @id @default(cuid())
+  profileId    String
+  acceptedById String
+  document     String // TERMS | PRIVACY | WAIVER | REFUND | PHOTO
+  version      String
+  acceptedAt   DateTime @default(now())
+  ip           String?
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  acceptedBy   Account  @relation(fields: [acceptedById], references: [id])
+
+  @@index([profileId, document])
+}
+
+// ---------- Programs, plans, memberships ----------
+
+enum Audience {
+  KIDS
+  ADULTS
+  MIXED
+}
+
+model Program {
+  id              String        @id @default(cuid())
+  name            String        @unique
+  audience        Audience
+  defaultCapacity Int
+  active          Boolean       @default(true)
+  plans           PlanProgram[]
+  classes         Class[]
+  series          ClassSeries[]
+  coaches         Account[]     @relation("CoachPrograms")
+}
+
+model Plan {
+  id              String        @id @default(cuid())
+  name            String
+  shortCode       String        @unique // used in the UPI note, e.g. KIDS
+  pricePaise      Int
+  cycleMonths     Int           @default(1)
+  creditsPerCycle Int? // null = unlimited
+  weeklyCap       Int? // null = no weekly cap
+  audience        Audience
+  public          Boolean       @default(true)
+  active          Boolean       @default(true)
+  programs        PlanProgram[]
+  memberships     Membership[]
+  payments        Payment[]
+}
+
+model PlanProgram {
+  planId    String
+  programId String
+  plan      Plan    @relation(fields: [planId], references: [id])
+  program   Program @relation(fields: [programId], references: [id])
+
+  @@id([planId, programId])
+}
+
+enum MembershipStatus {
+  SCHEDULED
+  ACTIVE
+  CANCELLED
+}
+
+enum MembershipSource {
+  PAID
+  IMPORTED
+}
+
+// Status shown to people (active, grace, due, frozen) is derived from the dates,
+// freezes and today's IST date; only CANCELLED is stored as a hard state.
+model Membership {
+  id        String           @id @default(cuid())
+  profileId String
+  planId    String
+  paymentId String?          @unique
+  startDate DateTime         @db.Date
+  endDate   DateTime         @db.Date
+  status    MembershipStatus @default(ACTIVE)
+  source    MembershipSource @default(PAID)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  profile   Profile          @relation(fields: [profileId], references: [id])
+  plan      Plan             @relation(fields: [planId], references: [id])
+  payment   Payment?         @relation(fields: [paymentId], references: [id])
+  freezes   Freeze[]
+  bookings  Booking[]
+  credits   CreditAdjustment[]
+
+  @@index([profileId, planId, startDate])
+}
+
+model Freeze {
+  id           String     @id @default(cuid())
+  membershipId String
+  startDate    DateTime   @db.Date
+  days         Int
+  reason       String
+  byAccountId  String
+  createdAt    DateTime   @default(now())
+  membership   Membership @relation(fields: [membershipId], references: [id])
+}
+
+enum CreditKind {
+  MAKEUP
+  MANUAL
+}
+
+model CreditAdjustment {
+  id           String      @id @default(cuid())
+  profileId    String
+  membershipId String?
+  delta        Int
+  kind         CreditKind
+  expiresOn    DateTime?   @db.Date
+  reason       String
+  byAccountId  String?
+  createdAt    DateTime    @default(now())
+  profile      Profile     @relation(fields: [profileId], references: [id])
+  membership   Membership? @relation(fields: [membershipId], references: [id])
+}
+
+// ---------- Schedule ----------
+
+enum ClassMode {
+  ONLINE
+  OFFLINE
+}
+
+enum ClassStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+model ClassSeries {
+  id             String    @id @default(cuid())
+  programId      String
+  coachId        String
+  title          String
+  weekdays       String // e.g. "1,3,5" (Mon=1 .. Sun=7)
+  startTimeIst   String // "18:00"
+  durationMin    Int
+  mode           ClassMode
+  locationOrLink String
+  capacity       Int
+  fromDate       DateTime  @db.Date
+  untilDate      DateTime? @db.Date
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  program        Program   @relation(fields: [programId], references: [id])
+  coach          Account   @relation("SeriesCoach", fields: [coachId], references: [id])
+  classes        Class[]
+}
+
+model Class {
+  id             String      @id @default(cuid())
+  seriesId       String?
+  programId      String
+  coachId        String
+  title          String
+  startsAt       DateTime
+  durationMin    Int
+  mode           ClassMode
+  locationOrLink String
+  capacity       Int
+  status         ClassStatus @default(SCHEDULED)
+  notes          String?     @db.Text
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  series         ClassSeries? @relation(fields: [seriesId], references: [id])
+  program        Program     @relation(fields: [programId], references: [id])
+  coach          Account     @relation("ClassCoach", fields: [coachId], references: [id])
+  bookings       Booking[]
+  waitlist       Waitlist[]
+  attendance     Attendance[]
+
+  @@unique([seriesId, startsAt])
+  @@index([startsAt])
+}
+
+model Closure {
+  id       String   @id @default(cuid())
+  fromDate DateTime @db.Date
+  toDate   DateTime @db.Date
+  reason   String
+}
+
+// ---------- Booking and attendance ----------
+
+enum BookingStatus {
+  BOOKED
+  CANCELLED
+  LATE_CANCELLED
+  ATTENDED
+  NO_SHOW
+  TRIAL
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  classId      String
+  profileId    String
+  membershipId String?
+  status       BookingStatus @default(BOOKED)
+  creditUsed   Boolean       @default(false)
+  makeupUsed   Boolean       @default(false)
+  cancelledAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  class        Class         @relation(fields: [classId], references: [id])
+  profile      Profile       @relation(fields: [profileId], references: [id])
+  membership   Membership?   @relation(fields: [membershipId], references: [id])
+
+  @@unique([classId, profileId])
+}
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  classId   String
+  profileId String
+  createdAt DateTime @default(now())
+  class     Class    @relation(fields: [classId], references: [id])
+  profile   Profile  @relation(fields: [profileId], references: [id])
+
+  @@unique([classId, profileId])
+}
+
+enum AttendanceMethod {
+  QR
+  QR_OFFLINE
+  CODE
+  MANUAL
+  WALKIN
+}
+
+model Attendance {
+  id           String           @id @default(cuid())
+  classId      String
+  profileId    String
+  method       AttendanceMethod
+  byAccountId  String?
+  at           DateTime
+  deviceScanId String?          @unique
+  reason       String?
+  createdAt    DateTime         @default(now())
+  class        Class            @relation(fields: [classId], references: [id])
+  profile      Profile          @relation(fields: [profileId], references: [id])
+
+  @@unique([classId, profileId])
+}
+
+// ---------- Payments and receipts ----------
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  REVERSED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CASH
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  profileId   String
+  planId      String
+  amountPaise Int
+  method      PaymentMethod @default(UPI)
+  utr         String?       @unique
+  upiNote     String?
+  proofFile   String?
+  status      PaymentStatus @default(PENDING)
+  batchId     String? // one UPI payment split across children (PAY-9)
+  paidOn      DateTime      @db.Date
+  verifiedBy  String?
+  reason      String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  profile     Profile       @relation(fields: [profileId], references: [id])
+  plan        Plan          @relation(fields: [planId], references: [id])
+  membership  Membership?
+  receipts    Receipt[]
+
+  @@index([status, createdAt])
+}
+
+enum ReceiptKind {
+  RECEIPT
+  CREDIT_NOTE
+}
+
+model Receipt {
+  id        String      @id @default(cuid())
+  number    String      @unique // UF-2026-0001 or UF-CN-2026-0001
+  kind      ReceiptKind
+  paymentId String
+  refersTo  String? // receipt number a credit note reverses
+  pdfFile   String?
+  gstJson   Json?
+  issuedAt  DateTime    @default(now())
+  payment   Payment     @relation(fields: [paymentId], references: [id])
+}
+
+// Gap-free yearly counters for receipt numbers (BILL-1, BILL-6)
+model Counter {
+  key   String @id // e.g. RECEIPT-2026
+  value Int
+}
+
+// ---------- Leads, progress ----------
+
+enum LeadStatus {
+  NEW
+  TRIAL_BOOKED
+  ATTENDED
+  JOINED
+  LOST
+}
+
+model Lead {
+  id             String     @id @default(cuid())
+  name           String
+  phone          String
+  forChildAge    Int?
+  program        String
+  preferredTime  String?
+  source         String     @default("website")
+  status         LeadStatus @default(NEW)
+  followUpOn     DateTime?  @db.Date
+  notes          String?    @db.Text
+  trialBookingId String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([phone])
+  @@index([status, followUpOn])
+}
+
+model WeightLog {
+  id        String   @id @default(cuid())
+  profileId String
+  date      DateTime @db.Date
+  weightKg  Decimal  @db.Decimal(5, 2)
+  profile   Profile  @relation(fields: [profileId], references: [id])
+
+  @@unique([profileId, date])
+}
+
+// ---------- Auth, messages, settings, audit ----------
+
+model LoginCode {
+  id        String   @id @default(cuid())
+  accountId String
+  channel   Channel
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  account   Account  @relation(fields: [accountId], references: [id])
+
+  @@index([accountId, createdAt])
+}
+
+model Session {
+  id          String    @id @default(cuid())
+  accountId   String
+  refreshHash String    @unique
+  device      String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  account     Account   @relation(fields: [accountId], references: [id])
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model MessageLog {
+  id         String        @id @default(cuid())
+  accountId  String?
+  channel    Channel
+  template   String
+  dedupeKey  String        @unique // MSG-5: type + subject + date
+  status     MessageStatus @default(QUEUED)
+  attempts   Int           @default(0)
+  providerId String?
+  error      String?       @db.Text
+  sentAt     DateTime?
+  createdAt  DateTime      @default(now())
+  account    Account?      @relation(fields: [accountId], references: [id])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}
+
+// Append-only: no updates or deletes from application code
+model AuditLog {
+  id       String   @id @default(cuid())
+  actorId  String?
+  action   String
+  entity   String
+  entityId String?
+  oldValue Json?
+  newValue Json?
+  ip       String?
+  at       DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([at])
+}

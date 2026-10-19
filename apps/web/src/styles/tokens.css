@@ -1,0 +1,136 @@
+/* Brand tokens: PRD v3.0 section 10.1. Every colour in the UI comes from here. */
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/800-italic.css';
+
+:root {
+  /* Raw brand colours (sampled from the logo artwork) */
+  --navy: #12335f;
+  --navy-deep: #0b1f3f;
+  --green: #4aa82a;
+  --green-dark: #2e7d1a;
+  --slate: #9fb4d3;
+  --blue: #2a6fc4;
+  --yellow: #f5c518;
+
+  /* Dark theme (default) */
+  --bg: var(--navy-deep);
+  --surface: var(--navy);
+  --surface-2: #173d6f;
+  --border: #24497a;
+  --text: #ffffff;
+  --text-muted: var(--slate);
+  --action-bg: var(--green);
+  --action-text: var(--navy-deep);
+  --link: #6fa8f0;
+  --danger: #ff7a5c;
+  --warning: var(--yellow);
+  --focus: var(--yellow);
+  --mark-left: #ffffff;
+  --mark-right: var(--green);
+  --word-tail: var(--slate);
+  --glow: rgba(74, 168, 42, 0.35);
+
+  --radius: 12px;
+  --radius-lg: 20px;
+  --font-head: 'Poppins', system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #eaf0f8;
+    --border: #d9e1ec;
+    --text: var(--navy);
+    --text-muted: #4a5d78;
+    --action-bg: var(--green-dark);
+    --action-text: #ffffff;
+    --link: var(--blue);
+    --danger: #c23118;
+    --warning: #8a6a00;
+    --focus: var(--blue);
+    --mark-left: var(--navy);
+    --word-tail: var(--navy);
+    --glow: rgba(74, 168, 42, 0.2);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme='light'] {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eaf0f8;
+  --border: #d9e1ec;
+  --text: var(--navy);
+  --text-muted: #4a5d78;
+  --action-bg: var(--green-dark);
+  --action-text: #ffffff;
+  --link: var(--blue);
+  --danger: #c23118;
+  --warning: #8a6a00;
+  --focus: var(--blue);
+  --mark-left: var(--navy);
+  --word-tail: var(--navy);
+  --glow: rgba(74, 168, 42, 0.2);
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-head);
+  line-height: 1.15;
+  margin: 0;
+}
+
+a {
+  color: var(--link);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
