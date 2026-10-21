@@ -2,10 +2,10 @@
 // Safe to run more than once. Classes and members are not seeded: they come
 // from the coaches' timetable and the member import (MIG-1 to MIG-5).
 import 'dotenv/config'
-import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 import { PrismaClient } from '../src/generated/prisma/client'
+import { createAdapter } from '../src/dbProvider'
 
-const prisma = new PrismaClient({ adapter: new PrismaMariaDb(process.env.DATABASE_URL!) })
+const prisma = new PrismaClient({ adapter: createAdapter(process.env.DATABASE_URL!) })
 
 async function main() {
   const programs = [

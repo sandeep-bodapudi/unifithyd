@@ -1,7 +1,7 @@
 // Admin dashboard, members, staff, leads, settings, audit, reports, import (ADM-1 to ADM-8, LEAD-3, MIG-1 to MIG-4)
 import { Router } from 'express'
 import { z } from 'zod'
-import { prisma } from '../db'
+import { containsText, lockRow, prisma } from '../db'
 import { addDays, addMonthsClamped, type Day } from '../domain/dates'
 import { isValidUpiId, memberCode } from '../domain/upi'
 import { audit } from '../lib/audit'
@@ -68,7 +68,7 @@ adminRouter.get(
     const s = await getSettings()
     const no = q.q ? Number(q.q.replace(/^uf/i, '')) : NaN
     const profiles = await prisma.profile.findMany({
-      where: q.q ? { OR: [{ name: { contains: q.q } }, { guardians: { some: { account: { OR: [{ phone: { contains: q.q } }, { email: { contains: q.q } }] } } } }, ...(Number.isFinite(no) && no > 0 ? [{ memberNo: no }] : [])] } : {},
+      where: q.q ? { OR: [{ name: containsText(q.q) }, { guardians: { some: { account: { OR: [{ phone: { contains: q.q } }, { email: containsText(q.q) }] } } } }, ...(Number.isFinite(no) && no > 0 ? [{ memberNo: no }] : [])] } : {},
       include: { guardians: { include: { account: true } }, _count: { select: { attendance: true } }, memberships: { where: { status: { not: 'CANCELLED' } }, select: { plan: { select: { programs: { select: { programId: true } } } } } } },
       orderBy: { memberNo: 'asc' },
       take: 500,
@@ -449,7 +449,7 @@ adminRouter.post(
         profile = await tx.profile.create({ data: { name: wantChild ? d.childName! : lead.name, dob: toDbDate(wantChild ? d.childDob! : '1990-01-01'), kind: wantChild ? 'CHILD' : 'ADULT' } })
         await tx.guardian.create({ data: { accountId: acc.id, profileId: profile.id } })
       }
-      await tx.$queryRaw`SELECT id FROM \`Class\` WHERE id = ${cls.id} FOR UPDATE`
+      await lockRow(tx, 'Class', cls.id)
       const taken = await tx.booking.count({ where: { classId: cls.id, status: { in: ['BOOKED', 'TRIAL'] } } })
       if (taken >= cls.capacity) throw conflict('This class is full')
       const b = await tx.booking.upsert({ where: { classId_profileId: { classId: cls.id, profileId: profile.id } }, update: { status: 'TRIAL' }, create: { classId: cls.id, profileId: profile.id, status: 'TRIAL' } })

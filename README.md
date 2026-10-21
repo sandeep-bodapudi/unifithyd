@@ -9,7 +9,7 @@ Public website, member PWA and staff dashboard for Unifit.hyd. The plan lives in
 | Path | What |
 | --- | --- |
 | `apps/web` | React + Vite PWA: 3D landing page and the member, coach and admin app (`/app`) |
-| `apps/api` | Node + Express + Prisma (MySQL 8) API |
+| `apps/api` | Node + Express + Prisma API (MySQL 8 / MariaDB or PostgreSQL) |
 | `apps/api/src/domain` | Membership, credits and UPI rules as pure, tested functions (PRD section 7) |
 | `brand/logo` | Vector logo set (SVG) generated from the artwork |
 | `brand/tools/gen-logo.mjs` | Rebuilds the SVG set and the PWA icons (`npm run logo`) |
@@ -17,7 +17,7 @@ Public website, member PWA and staff dashboard for Unifit.hyd. The plan lives in
 
 ## Run locally
 
-You need Node 24 and MySQL 8 (or MariaDB). On the development PC a project-only MariaDB runs on port 3307 with its data in the git-ignored `.data/` folder (`npm run db:local` starts it).
+You need Node 24 and MySQL 8, MariaDB or PostgreSQL (see [Database](#database)). On the development PC a project-only MariaDB runs on port 3307 with its data in the git-ignored `.data/` folder (`npm run db:local` starts it).
 
 ```bash
 npm install
@@ -51,6 +51,21 @@ npm run dev:web
 - App for members, coaches and admins: http://localhost:5173/app
 - Staff log in with email, then password, then a 6-digit email code. Members log in with an email code only.
 - Without `RESEND_API_KEY`, emails (including login codes) are printed in the API console. `DEV_SHOW_CODES=true` also shows codes on screen; never set it in production.
+
+## Database
+
+The API runs on MySQL 8 / MariaDB or PostgreSQL. The scheme of `DATABASE_URL` decides which (`mysql://` or `postgresql://`); the driver adapter, Prisma schema and migrations folder follow from it.
+
+| | MySQL / MariaDB | PostgreSQL |
+| --- | --- | --- |
+| Schema | `apps/api/prisma/schema.prisma` | Generated from it by `prisma.config.ts` (git-ignored) |
+| Migrations | `apps/api/prisma/migrations` | `apps/api/prisma/postgresql/migrations` |
+
+- Edit only `prisma/schema.prisma`. Keep to features both databases support (no `@db.MediumText`, `@db.TinyInt`, `mode: 'insensitive'` and so on).
+- The generated client is specific to one database. Run `npm run db:generate -w @unifit/api` after switching `DATABASE_URL`.
+- Raw SQL differs between the two (identifier quotes, for example). Use the helpers in `apps/api/src/db.ts`: `lockRow` for `SELECT ... FOR UPDATE` and `containsText` for case-insensitive search.
+- When you change the schema, create the migration for both databases: run `npm run db:migrate -w @unifit/api -- --name <change>` once with a MySQL URL and once with a PostgreSQL URL, and commit both folders.
+- In production, apply migrations with `npm run db:deploy -w @unifit/api`.
 
 ## What is built (PRD v3.0)
 
