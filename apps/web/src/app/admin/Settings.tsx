@@ -145,7 +145,7 @@ function UpiChange({ onClose, onDone }: { onClose: () => void; onDone: () => voi
         </>
       ) : (
         <>
-          <Field label="Code from your email" inputMode="numeric" maxLength={6} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} hint={dev ? `Development code: ${dev}` : undefined} />
+          <Field label="Code from your email" inputMode="numeric" maxLength={6} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} hint={dev ? `Test code: ${dev}` : undefined} />
           <Field label="UPI ID" placeholder="name@bank" value={f.upiId} onChange={(e) => setF({ ...f, upiId: e.target.value.trim() })} />
           <Field label="Payee name (as shown in UPI apps)" value={f.upiPayeeName} onChange={(e) => setF({ ...f, upiPayeeName: e.target.value })} />
           <p className="muted small">Double-check the UPI ID by sending ₹1 to it from your own phone before saving.</p>

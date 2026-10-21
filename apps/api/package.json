@@ -9,10 +9,12 @@
     "start": "tsx src/index.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "test": "node --import tsx --test src/**/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "owner:create": "tsx src/scripts/create-owner.ts"
+    "owner:create": "tsx src/scripts/create-owner.ts",
+    "demo:data": "tsx src/scripts/demo-data.ts"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
@@ -24,6 +26,7 @@
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.10.1",
+    "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",

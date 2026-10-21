@@ -85,7 +85,7 @@ export default function Login() {
             maxLength={6}
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            hint={devCode ? `Development code: ${devCode}` : undefined}
+            hint={devCode ? `Test code: ${devCode}` : undefined}
             required
             autoFocus
           />

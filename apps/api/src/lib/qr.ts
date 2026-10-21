@@ -11,8 +11,8 @@ function loadKeys() {
   if (priv) return
   let pem = env.QR_PRIVATE_KEY ? Buffer.from(env.QR_PRIVATE_KEY, 'base64').toString('utf8') : null
   if (!pem) {
-    if (isProd) throw new Error('QR_PRIVATE_KEY is required in production')
-    // Development: create a key once and keep it in the git-ignored .data folder
+    if (isProd && !env.DEMO_MODE) throw new Error('QR_PRIVATE_KEY is required in production')
+    // Development and demos: create a key once and keep it in the git-ignored .data folder
     const file = path.resolve(import.meta.dirname, '../../../../.data/qr-key.pem')
     if (fs.existsSync(file)) pem = fs.readFileSync(file, 'utf8')
     else {

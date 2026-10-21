@@ -1,0 +1,41 @@
+# Render Blueprint for a CLIENT DEMO on Render's free plans, preloaded with made-up sample data.
+# Render dashboard -> New -> Blueprint -> this repo. You are asked for DEMO_PASSWORD.
+# Login codes are shown on screen (no email needed). Use sample data only: anyone with the URL
+# can log in as a demo member. For the real studio use render.production.yaml instead.
+services:
+  - type: web
+    name: unifit-demo
+    runtime: node
+    region: singapore # closest Render region to Hyderabad
+    plan: free # sleeps after 15 minutes idle; the first visit then takes about a minute
+    buildCommand: npm ci --include=dev && npm run build
+    # Free plan has no pre-deploy step: migrate, load plans and demo data (once), then start
+    startCommand: npm run db:deploy -w @unifit/api && npm run db:seed -w @unifit/api && npm run demo:data -w @unifit/api && npm start -w @unifit/api
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unifit-demo-db
+          property: connectionString
+      - key: APP_SECRET
+        generateValue: true
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEV_SHOW_CODES
+        value: "true"
+      - key: DEMO_PASSWORD # password for owner@example.com and coach@example.com (10+ characters)
+        sync: false
+      - key: JOBS_ENABLED
+        value: "true"
+
+databases:
+  - name: unifit-demo-db
+    databaseName: unifit
+    user: unifit
+    region: singapore
+    plan: free # expires 30 days after creation
+    postgresMajorVersion: "16"

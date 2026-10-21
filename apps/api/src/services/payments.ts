@@ -1,6 +1,6 @@
 // Verify, record, reverse and refund payments; receipts and credit notes (PAY-10 to PAY-14, BILL-1 to BILL-6)
 import type { Request } from 'express'
-import { prisma } from '../db'
+import { lockRow, prisma } from '../db'
 import { addDays } from '../domain/dates'
 import type { Prisma } from '../generated/prisma/client'
 import { audit } from '../lib/audit'
@@ -31,7 +31,7 @@ export async function verifyPayment(req: Request, paymentId: string) {
   const settings = await getSettings()
   const gst = await gstJson()
   const out = await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM \`Payment\` WHERE id = ${paymentId} FOR UPDATE`
+    await lockRow(tx, 'Payment', paymentId)
     const p = await tx.payment.findUnique({ where: { id: paymentId }, include: { plan: true, profile: true } })
     if (!p) throw notFound('Payment not found')
     if (p.status !== 'PENDING') throw conflict(`This payment is already ${p.status.toLowerCase()}`)

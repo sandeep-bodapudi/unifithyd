@@ -1,7 +1,7 @@
 // Check-in: QR scan (online and offline), class code, staff manual mark (ATT-1 to ATT-11, section 9)
 import { Router, type Request } from 'express'
 import { z } from 'zod'
-import { prisma } from '../db'
+import { containsText, prisma } from '../db'
 import { audit } from '../lib/audit'
 import { assertProfileAccess, isAdmin, requireAuth, requireStaff } from '../lib/auth'
 import { classCode } from '../lib/crypto'
@@ -152,7 +152,7 @@ attendanceRouter.get(
     const { q } = parse(z.object({ q: z.string().trim().min(2).max(40) }), req.query)
     const no = Number(q.replace(/^uf/i, ''))
     const rows = await prisma.profile.findMany({
-      where: { OR: [{ name: { contains: q } }, ...(Number.isFinite(no) && no > 0 ? [{ memberNo: no }] : [])] },
+      where: { OR: [{ name: containsText(q) }, ...(Number.isFinite(no) && no > 0 ? [{ memberNo: no }] : [])] },
       take: 10,
     })
     res.json({ people: rows.map((p) => ({ profileId: p.id, name: p.name, memberCode: memberCode(p.memberNo), kind: p.kind })) })

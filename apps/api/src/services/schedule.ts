@@ -1,5 +1,5 @@
 // Series generation, bookings and studio cancellations (CLS-5 to CLS-8, BKG-1 to BKG-10)
-import { prisma } from '../db'
+import { lockRow, prisma } from '../db'
 import { addDays, weekday, type Day } from '../domain/dates'
 import { cancelReturnsCredit } from '../domain/membership'
 import type { Prisma } from '../generated/prisma/client'
@@ -48,7 +48,7 @@ const ACTIVE = ['BOOKED', 'TRIAL'] as const
 export async function bookClass(profileId: string, classId: string, opts: { walkIn?: boolean } = {}) {
   const settings = await getSettings()
   const result = await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM \`Class\` WHERE id = ${classId} FOR UPDATE`
+    await lockRow(tx, 'Class', classId)
     const cls = await tx.class.findUnique({ where: { id: classId }, include: { program: true } })
     if (!cls || cls.status !== 'SCHEDULED') throw notFound('This class is not open for booking')
     const now = new Date()
