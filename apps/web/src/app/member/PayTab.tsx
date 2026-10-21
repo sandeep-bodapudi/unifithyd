@@ -1,6 +1,7 @@
 // Pay by UPI with member code in the note, then "I have paid" with UTR (PAY-4 to PAY-9)
 import QRCode from 'qrcode'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api, fmtDay, rupees } from '../api'
 import { ProfileSwitcher, useProfile } from '../App'
 import { useSession } from '../session'
@@ -42,7 +43,19 @@ export default function PayTab() {
     }
   }
 
-  if (!profileId) return <Empty title="No profile yet" />
+  if (!profileId)
+    return (
+      <Empty
+        title="No one added yet"
+        action={
+          <Link className="ab ab--primary ab--sm" to="/app/me">
+            Add yourself or a child
+          </Link>
+        }
+      >
+        Add the person who trains, then choose their plan and pay by UPI here.
+      </Empty>
+    )
   if (loading && !data) return <Loading />
   if (!data) return <ErrorNote error={error} />
 
@@ -81,6 +94,11 @@ export default function PayTab() {
       </section>
 
       <h2 className="h2">Choose a plan</h2>
+      {!data.options.length && (
+        <Empty title={`No plans open for ${data.profile.name.split(' ')[0]} yet`}>
+          The studio has not added a plan for this age group. Please ask at the front desk or on WhatsApp.
+        </Empty>
+      )}
       <div className="planpick" role="radiogroup" aria-label="Plan">
         {data.options.map((o) => (
           <button key={o.planId} role="radio" aria-checked={o.planId === chosen?.planId} className={`acard planpick__item ${o.planId === chosen?.planId ? 'on' : ''}`} onClick={() => setPlanId(o.planId)}>
@@ -136,7 +154,9 @@ export default function PayTab() {
       {chosen && data.upi && <IHavePaid planId={chosen.planId} profileId={profileId} onDone={() => (void reload(), void history.reload())} />}
 
       <h2 className="h2">Payment history</h2>
-      {history.data?.payments.length ? (
+      {history.loading && !history.data ? (
+        <Loading />
+      ) : history.data?.payments.length ? (
         <ul className="hist">
           {history.data.payments.map((p) => (
             <li key={p.id} className="acard hist__row">
@@ -158,7 +178,9 @@ export default function PayTab() {
           ))}
         </ul>
       ) : (
-        <p className="muted">No payments yet.</p>
+        <Empty compact title="No payments yet">
+          After you pay and tap "I have paid", your payments and receipts are listed here.
+        </Empty>
       )}
       {me!.profiles.length > 1 && <p className="muted small">Paying for several children at once? Tick them in "I have paid" so one UPI payment covers everyone.</p>}
     </div>

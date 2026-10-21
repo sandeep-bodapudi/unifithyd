@@ -88,15 +88,22 @@ export function Pill({ status, label }: { status: string; label?: string }) {
   return <span className={`pill2 pill2--${tone}`}>{label ?? text}</span>
 }
 
-export function Empty({ title, children }: { title: string; children?: ReactNode }) {
+/**
+ * Empty state for a page or section: what belongs here, why it matters, and the one action to start.
+ * For filtered views, pass a "Clear filters" action. `compact` fits inside a card or a small section.
+ */
+export function Empty({ title, children, action, compact }: { title: string; children?: ReactNode; action?: ReactNode; compact?: boolean }) {
   return (
-    <div className="aempty">
-      <svg viewBox="0 0 315 379.5" aria-hidden="true" width="34">
-        <path d="M0 104H105V222A52.5 52.5 0 0 0 157.5 274.5V379.5A157.5 157.5 0 0 1 0 222Z" fill="var(--mark-left)" opacity=".35" />
-        <path d="M157.5 379.5V274.5A52.5 52.5 0 0 0 210 222V69L315 0V222A157.5 157.5 0 0 1 157.5 379.5Z" fill="var(--green)" opacity=".6" />
-      </svg>
+    <div className={`aempty ${compact ? 'aempty--compact' : ''}`} role="status">
+      {!compact && (
+        <svg viewBox="0 0 315 379.5" aria-hidden="true" width="34">
+          <path d="M0 104H105V222A52.5 52.5 0 0 0 157.5 274.5V379.5A157.5 157.5 0 0 1 0 222Z" fill="var(--mark-left)" opacity=".35" />
+          <path d="M157.5 379.5V274.5A52.5 52.5 0 0 0 210 222V69L315 0V222A157.5 157.5 0 0 1 157.5 379.5Z" fill="var(--green)" opacity=".6" />
+        </svg>
+      )}
       <strong>{title}</strong>
-      {children && <div className="muted">{children}</div>}
+      {children && <div className="muted aempty__body">{children}</div>}
+      {action && <div className="aempty__act">{action}</div>}
     </div>
   )
 }

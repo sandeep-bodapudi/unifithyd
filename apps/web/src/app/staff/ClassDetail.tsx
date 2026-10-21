@@ -98,7 +98,18 @@ export default function ClassDetail() {
       {tab === 'roster' && (
         <>
           {!data.people.length ? (
-            <Empty title="Nobody booked yet" />
+            <Empty
+              title="Nobody booked yet"
+              action={
+                live && (
+                  <Button size="sm" variant="ghost" onClick={() => setManual(true)}>
+                    Check someone in
+                  </Button>
+                )
+              }
+            >
+              Members who book this class appear here, and you mark them in as they arrive.
+            </Empty>
           ) : (
             <ul className="roster">
               {data.people.map((p) => (
@@ -209,16 +220,22 @@ function ManualCheckIn({ classId, onClose, onDone }: { classId: string; onClose:
   const [q, setQ] = useState('')
   const [reason, setReason] = useState('')
   const [people, setPeople] = useState<{ profileId: string; name: string; memberCode: string }[]>([])
+  const [searched, setSearched] = useState('')
   const { busy, run } = useAction()
   useEffect(() => {
-    if (q.trim().length < 2) return setPeople([])
-    const t = setTimeout(() => api.get<{ people: typeof people }>(`/attendance/search?q=${encodeURIComponent(q.trim())}`).then((r) => setPeople(r.people)).catch(() => {}), 250)
+    if (q.trim().length < 2) return (setPeople([]), setSearched(''))
+    const t = setTimeout(() => api.get<{ people: typeof people }>(`/attendance/search?q=${encodeURIComponent(q.trim())}`).then((r) => (setPeople(r.people), setSearched(q.trim()))).catch(() => {}), 250)
     return () => clearTimeout(t)
   }, [q])
   return (
     <Sheet title="Find and check in" onClose={onClose}>
       <Field label="Name or member code" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
       <Field label="Reason (required)" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. phone battery dead" />
+      {searched && !people.length && (
+        <Empty compact title={`No members match "${searched}"`}>
+          Try part of the name, or the member code such as UF0012.
+        </Empty>
+      )}
       <ul className="picklist">
         {people.map((p) => (
           <li key={p.profileId}>

@@ -325,12 +325,12 @@ function Modes() {
 type PublicClass = { id: string; title: string; program: string; startsAt: string; mode: 'ONLINE' | 'OFFLINE'; spotsLeft: number }
 
 function Schedule() {
-  const [classes, setClasses] = useState<PublicClass[] | null>(null)
+  const [classes, setClasses] = useState<PublicClass[] | 'error' | null>(null)
   useEffect(() => {
     fetch('/api/public/schedule')
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d: { classes: PublicClass[] }) => setClasses(d.classes))
-      .catch(() => setClasses([]))
+      .catch(() => setClasses('error'))
   }, [])
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })
@@ -343,12 +343,18 @@ function Schedule() {
         </header>
         {classes === null ? (
           <p className="muted center">Loading the timetable…</p>
-        ) : classes.length === 0 ? (
+        ) : classes === 'error' || classes.length === 0 ? (
           <div className="card empty" data-reveal>
             <Mark size={40} />
+            <h3>{classes === 'error' ? 'The timetable could not load' : 'No classes open this week yet'}</h3>
             <p>
-              The live timetable is coming soon. <a href="#trial">Book a free trial</a> and we will find a time that suits you.
+              {classes === 'error'
+                ? 'Please refresh the page in a moment. You can still ask for a free trial and we will call you.'
+                : 'New classes are added every week. Ask for a free trial and we will find a time that suits you.'}
             </p>
+            <a className="btn btn--primary" href="#trial">
+              Book a free trial
+            </a>
           </div>
         ) : (
           <ul className="schedule" data-reveal>

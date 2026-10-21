@@ -1,10 +1,10 @@
 // Profile, progress, weight log, family and privacy (FIT-1, FIT-2, ACC-7, KID-1, MSG-2)
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api, fmtDay, fmtWhen, istToday } from '../api'
 import { ProfileSwitcher, useProfile } from '../App'
 import { useSession } from '../session'
-import { Button, Card, Check, ErrorNote, Field, PageHead, Pill, Select, Sheet, useAction, useLoad } from '../ui'
+import { Button, Card, Check, Empty, ErrorNote, Field, PageHead, Pill, Select, Sheet, useAction, useLoad } from '../ui'
 
 type Summary = {
   plans: { planName: string; status: string; end: string; creditsLeft: number | null; weekLeft: number | null; makeupCredits: number }[]
@@ -63,8 +63,35 @@ export default function MeTab() {
               <Pill status={p.status} />
             </Card>
           ))}
+          {!s.data.plans.length && (
+            <Card>
+              <Empty
+                compact
+                title={`No plan for ${profile.name.split(' ')[0]} yet`}
+                action={
+                  <Link className="ab ab--primary ab--sm" to="/app/pay">
+                    Choose a plan
+                  </Link>
+                }
+              >
+                Pick a plan and pay by UPI to start booking classes.
+              </Empty>
+            </Card>
+          )}
           {profile.kind === 'ADULT' && <Weights profileId={profile.id} />}
           <h2 className="h2">Recent classes</h2>
+          {!s.data.history.length && (
+            <Empty
+              title="No classes yet"
+              action={
+                <Link className="ab ab--ghost ab--sm" to="/app/classes">
+                  Book a class
+                </Link>
+              }
+            >
+              Classes you book and attend show here, with your streak above.
+            </Empty>
+          )}
           <ul className="hist">
             {s.data.history.slice(0, 8).map((h) => (
               <li key={h.id} className="acard hist__row">
@@ -75,13 +102,13 @@ export default function MeTab() {
                 <Pill status={h.status} />
               </li>
             ))}
-            {!s.data.history.length && <p className="muted">No classes yet.</p>}
           </ul>
         </>
       )}
 
       <h2 className="h2">Family</h2>
       <Card>
+        {!me!.profiles.length && <Empty compact title="No one added yet">Add yourself or your children to book classes and get a check-in QR.</Empty>}
         <ul className="family">
           {me!.profiles.map((p) => (
             <li key={p.id}>
@@ -150,7 +177,7 @@ function Weights({ profileId }: { profileId: string }) {
           <path d={path} fill="none" stroke="var(--green)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
         </svg>
       ) : (
-        <p className="muted small">Log a few entries to see your trend.</p>
+        <p className="muted small">{pts.length ? 'Log one more entry to see your trend.' : 'No entries yet. Log your weight below to track your progress over time.'}</p>
       )}
       {pts.length > 0 && <p className="small">Latest: {pts.at(-1)!.kg} kg</p>}
       <div className="arow">

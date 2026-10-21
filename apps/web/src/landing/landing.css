@@ -739,12 +739,14 @@
   padding: 16px 20px;
 }
 .empty {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  max-width: 640px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 560px;
   margin: 0 auto;
+  text-align: center;
 }
+.empty h3,
 .empty p {
   margin: 0;
 }

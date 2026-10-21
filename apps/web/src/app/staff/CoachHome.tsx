@@ -48,8 +48,15 @@ export default function CoachHome() {
       {loading && !data ? (
         <Loading />
       ) : !data?.classes.length ? (
-        <Empty title="No classes on this day">
-          Set up your weekly classes in the <Link to="/app/coach/timetable">timetable</Link>.
+        <Empty
+          title="No classes on this day"
+          action={
+            <Link to="/app/coach/timetable" className="ab ab--ghost ab--sm">
+              Open timetable
+            </Link>
+          }
+        >
+          Classes appear here from the weekly timetable. Pick another day, or add a class.
         </Empty>
       ) : (
         <ul className="clist">

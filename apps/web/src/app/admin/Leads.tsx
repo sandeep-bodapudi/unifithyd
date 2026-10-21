@@ -35,7 +35,29 @@ export default function Leads() {
       {loading && !data ? (
         <Loading />
       ) : !data?.leads.length ? (
-        <Empty title="No leads here" />
+        status === 'OPEN' || status === 'ALL' ? (
+          <Empty
+            title={status === 'OPEN' ? 'No open leads' : 'No leads yet'}
+            action={
+              <a className="ab ab--ghost ab--sm" href="/#trial" target="_blank" rel="noreferrer">
+                Open the trial form
+              </a>
+            }
+          >
+            People who ask for a free trial on the website appear here, so you can call them and book a class.
+          </Empty>
+        ) : (
+          <Empty
+            title={`No leads marked "${status.replace('_', ' ').toLowerCase()}"`}
+            action={
+              <Button size="sm" variant="ghost" onClick={() => setStatus('OPEN')}>
+                Show open leads
+              </Button>
+            }
+          >
+            Try another status.
+          </Empty>
+        )
       ) : (
         <ul className="hist">
           {data.leads.map((l) => (

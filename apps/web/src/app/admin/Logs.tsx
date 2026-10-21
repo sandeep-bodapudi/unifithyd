@@ -1,7 +1,7 @@
 // AuditLog and MessageLog viewers (FR audit, MSG-3)
 import { useState } from 'react'
 import { api, fmtWhen } from '../api'
-import { Card, ErrorNote, Loading, PageHead, Pill, useLoad } from '../ui'
+import { Button, Card, Empty, ErrorNote, Loading, PageHead, Pill, useLoad } from '../ui'
 
 type Audit = { id: string; actor: string | null; action: string; entity: string; entityId: string | null; oldValue: unknown; newValue: unknown; ip: string | null; at: string }
 type Msg = { id: string; to: string; name: string; template: string; channel: string; status: string; attempts: number; error: string | null; at: string }
@@ -42,6 +42,21 @@ export default function Logs() {
           <ErrorNote error={audit.error} />
           {audit.loading && !audit.data ? (
             <Loading />
+          ) : !audit.data?.audit.length ? (
+            filter ? (
+              <Empty
+                title="No changes of this type yet"
+                action={
+                  <Button size="sm" variant="ghost" onClick={() => setFilter('')}>
+                    Show everything
+                  </Button>
+                }
+              >
+                Pick another filter or show every change.
+              </Empty>
+            ) : (
+              <Empty title="No changes recorded yet">Payments, settings, staff and attendance changes are logged here with who made them and when.</Empty>
+            )
           ) : (
             <Card className="tablecard">
               <table className="atable">
@@ -68,6 +83,13 @@ export default function Logs() {
               </table>
             </Card>
           )}
+        </>
+      ) : msgs.loading && !msgs.data ? (
+        <Loading />
+      ) : !msgs.data?.messages.length ? (
+        <>
+          <ErrorNote error={msgs.error} />
+          <Empty title="No messages sent yet">Login codes, booking confirmations, reminders and receipts sent to members are listed here with their delivery status.</Empty>
         </>
       ) : (
         <Card className="tablecard">

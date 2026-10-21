@@ -122,8 +122,19 @@ export default function Timetable() {
         }
       />
       <ErrorNote error={series.error} />
-      {!series.data?.series.length ? (
-        <Empty title="No weekly classes yet">Add your regular classes with "+ Weekly class".</Empty>
+      {series.loading && !series.data ? (
+        <Loading />
+      ) : !series.data?.series.length ? (
+        <Empty
+          title="No weekly classes yet"
+          action={
+            <Button size="sm" onClick={() => setSheet('series')}>
+              Add weekly class
+            </Button>
+          }
+        >
+          Add each regular class once. It then appears 4 weeks ahead for members to book.
+        </Empty>
       ) : (
         <ul className="clist">
           {series.data.series.map((s) => (
@@ -181,7 +192,9 @@ export default function Timetable() {
           ))}
         </ul>
       ) : (
-        <p className="muted">No upcoming closures.</p>
+        <Empty compact title="No upcoming closures">
+          {admin ? 'Add a closure for holidays or maintenance. Classes on those days are cancelled and members are told.' : 'Holidays and other days the studio is shut appear here.'}
+        </Empty>
       )}
       {admin && (
         <Button variant="ghost" size="sm" onClick={() => setSheet('closure')}>

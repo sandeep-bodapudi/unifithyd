@@ -1,7 +1,7 @@
 // ADM-5, ADM-6: attendance, revenue and coach reports
 import { useState } from 'react'
 import { addDays, api, istToday, rupees } from '../api'
-import { Card, ErrorNote, Field, Loading, PageHead, Select, useLoad } from '../ui'
+import { Button, Card, Empty, ErrorNote, Field, Loading, PageHead, Select, useLoad } from '../ui'
 
 type R = {
   attendance: { program: string; classes: number; booked: number; attended: number; noShows: number }[]
@@ -15,6 +15,12 @@ export default function Reports() {
   const [to, setTo] = useState(istToday())
   const [mode, setMode] = useState('ALL')
   const { data, error, loading } = useLoad(() => api.get<R>(`/admin/reports?from=${from}&to=${to}&mode=${mode}`), [from, to, mode])
+  const widen = () => (setFrom(addDays(istToday(), -365)), setTo(istToday()), setMode('ALL'))
+  const widenAction = (
+    <Button size="sm" variant="ghost" onClick={widen}>
+      Show the last 12 months
+    </Button>
+  )
   const maxRev = Math.max(1, ...(data?.revenue.map((r) => r.paise) ?? [1]))
   return (
     <div>
@@ -65,59 +71,77 @@ export default function Reports() {
                   </div>
                 ))
               ) : (
-                <p className="muted">No payments in this range.</p>
+                <Empty compact title="No payments in these dates" action={widenAction}>
+                  Revenue per plan appears once payments are verified.
+                </Empty>
               )}
             </Card>
             <h2 className="h2">Attendance by program</h2>
-            <Card className="tablecard">
-              <table className="atable">
-                <thead>
-                  <tr>
-                    <th>Program</th>
-                    <th>Classes</th>
-                    <th>Booked</th>
-                    <th>Attended</th>
-                    <th>No-shows</th>
-                    <th>No-show rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.attendance.map((a) => (
-                    <tr key={a.program}>
-                      <td>{a.program}</td>
-                      <td>{a.classes}</td>
-                      <td>{a.booked}</td>
-                      <td>{a.attended}</td>
-                      <td>{a.noShows}</td>
-                      <td>{a.booked ? `${Math.round((a.noShows / a.booked) * 100)}%` : '–'}</td>
+            {!data.attendance.length ? (
+              <Card>
+                <Empty compact title="No classes in these dates" action={widenAction}>
+                  Bookings, check-ins and no-shows per program appear once classes have run.
+                </Empty>
+              </Card>
+            ) : (
+              <Card className="tablecard">
+                <table className="atable">
+                  <thead>
+                    <tr>
+                      <th>Program</th>
+                      <th>Classes</th>
+                      <th>Booked</th>
+                      <th>Attended</th>
+                      <th>No-shows</th>
+                      <th>No-show rate</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
+                  </thead>
+                  <tbody>
+                    {data.attendance.map((a) => (
+                      <tr key={a.program}>
+                        <td>{a.program}</td>
+                        <td>{a.classes}</td>
+                        <td>{a.booked}</td>
+                        <td>{a.attended}</td>
+                        <td>{a.noShows}</td>
+                        <td>{a.booked ? `${Math.round((a.noShows / a.booked) * 100)}%` : '–'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            )}
             <h2 className="h2">Coaches</h2>
-            <Card className="tablecard">
-              <table className="atable">
-                <thead>
-                  <tr>
-                    <th>Coach</th>
-                    <th>Classes taught</th>
-                    <th>Check-ins</th>
-                    <th>Average per class</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.coaches.map((c) => (
-                    <tr key={c.coach}>
-                      <td>{c.coach}</td>
-                      <td>{c.classes}</td>
-                      <td>{c.attended}</td>
-                      <td>{c.avgAttendance}</td>
+            {!data.coaches.length ? (
+              <Card>
+                <Empty compact title="No coach activity in these dates" action={widenAction}>
+                  Classes taught and check-ins per coach appear once classes have run.
+                </Empty>
+              </Card>
+            ) : (
+              <Card className="tablecard">
+                <table className="atable">
+                  <thead>
+                    <tr>
+                      <th>Coach</th>
+                      <th>Classes taught</th>
+                      <th>Check-ins</th>
+                      <th>Average per class</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
+                  </thead>
+                  <tbody>
+                    {data.coaches.map((c) => (
+                      <tr key={c.coach}>
+                        <td>{c.coach}</td>
+                        <td>{c.classes}</td>
+                        <td>{c.attended}</td>
+                        <td>{c.avgAttendance}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            )}
           </>
         )
       )}

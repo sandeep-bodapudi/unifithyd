@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { api } from '../api'
 import { useSession } from '../session'
-import { Button, Card, Check, ErrorNote, Field, Loading, PageHead, Pill, Select, Sheet, useAction, useLoad } from '../ui'
+import { Button, Card, Check, Empty, ErrorNote, Field, Loading, PageHead, Pill, Select, Sheet, useAction, useLoad } from '../ui'
 
 type StaffRow = { id: string; name: string; email: string; phone: string; disabled: boolean; roles: string[]; programs: { id: string; name: string }[] }
 
@@ -43,6 +43,20 @@ export default function Staff() {
           </li>
         ))}
       </ul>
+      {data && data.staff.every((s) => s.roles.includes('OWNER')) && (
+        <Empty
+          title="No coaches or admins yet"
+          action={
+            owner && (
+              <Button size="sm" onClick={() => setAdd(true)}>
+                Add staff
+              </Button>
+            )
+          }
+        >
+          {owner ? 'Add your coaches so they can run classes and check members in, and admins to help with payments.' : 'The owner adds coaches and admins here.'}
+        </Empty>
+      )}
       {add && meta.data && (
         <StaffForm programs={meta.data.programs} onClose={() => setAdd(false)} onDone={(name, pw) => (setAdd(false), pw && setTemp({ name, pw }), void reload())} />
       )}

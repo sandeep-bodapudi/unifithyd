@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { api, rupees } from '../api'
 import { useSession } from '../session'
-import { Button, Card, Check, ErrorNote, Field, Loading, PageHead, Pill, Select, Sheet, useAction, useLoad } from '../ui'
+import { Button, Card, Check, Empty, ErrorNote, Field, Loading, PageHead, Pill, Select, Sheet, useAction, useLoad } from '../ui'
 
 type S = {
   studioName: string
@@ -98,6 +98,19 @@ export default function Settings() {
             + New plan
           </Button>
         </div>
+        {plans.data && !plans.data.plans.length && (
+          <Empty
+            compact
+            title="No plans yet"
+            action={
+              <Button size="sm" onClick={() => setPlan('new')}>
+                Create plan
+              </Button>
+            }
+          >
+            Members pick a plan when they pay, so add at least one before sharing the app.
+          </Empty>
+        )}
         <ul className="mini">
           {plans.data?.plans.map((p) => (
             <li key={p.id}>

@@ -36,7 +36,16 @@ export default function Dashboard() {
       </div>
       <h2 className="h2">Today's schedule</h2>
       {!data.today.length ? (
-        <Empty title="No classes today" />
+        <Empty
+          title="No classes today"
+          action={
+            <Link className="ab ab--ghost ab--sm" to="/app/coach/timetable">
+              Open timetable
+            </Link>
+          }
+        >
+          Classes scheduled for today show here with bookings and check-ins.
+        </Empty>
       ) : (
         <Card className="tablecard">
           <table className="atable">

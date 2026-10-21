@@ -26,7 +26,7 @@ export default function Payments() {
       {loading && !data ? (
         <Loading />
       ) : !data?.payments.length ? (
-        <Empty title="All caught up">No payments waiting.</Empty>
+        <Empty title="All caught up">When a member taps "I have paid", their payment waits here for you to check against your bank or UPI app.</Empty>
       ) : (
         <ul className="hist">
           {data.payments.map((p) => (
@@ -79,7 +79,21 @@ export default function Payments() {
           Last 30 days
         </button>
       </div>
-      {list.data && (
+      <ErrorNote error={list.error} />
+      {list.loading && !list.data ? (
+        <Loading />
+      ) : list.data && !list.data.payments.length ? (
+        <Empty
+          title={`No payments from ${fmtDay(from)} to ${fmtDay(to)}`}
+          action={
+            <Button size="sm" variant="ghost" onClick={() => (setFrom(addDays(istToday(), -365)), setTo(istToday()))}>
+              Show the last 12 months
+            </Button>
+          }
+        >
+          Verified, rejected and refunded payments in these dates show here with their receipts.
+        </Empty>
+      ) : list.data && (
         <Card className="tablecard">
           <p className="tablecard__sum">
             Verified total: <strong>{rupees(list.data.totalPaise)}</strong>

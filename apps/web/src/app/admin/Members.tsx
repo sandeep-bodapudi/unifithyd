@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, fmtDay } from '../api'
-import { Card, Empty, ErrorNote, Loading, PageHead, Pill, Select, useLoad } from '../ui'
+import { Button, Card, Empty, ErrorNote, Loading, PageHead, Pill, Select, useLoad } from '../ui'
 
 type Row = { profileId: string; name: string; memberCode: string; kind: string; status: string; plans: string[]; paidUntil: string | null; dueDays: number; attended: number; account: { name: string; phone: string; email: string; disabled: boolean } | null }
 
@@ -13,6 +13,8 @@ export default function Members() {
   const programs = useLoad(() => api.get<{ programs: { id: string; name: string }[] }>('/staff/meta'))
   const programId = params.get('program') ?? ''
   const { data, error, loading } = useLoad(() => api.get<{ members: Row[] }>(`/admin/members?status=${status}${params.get('q') ? `&q=${encodeURIComponent(params.get('q')!)}` : ''}${programId ? `&programId=${programId}` : ''}`), [params.toString()])
+  const filtered = Boolean(params.get('q') || programId || status !== 'ALL')
+  const clearFilters = () => (setQ(''), setParams(new URLSearchParams(), { replace: true }))
   const update = (k: string, v: string) => {
     const p = new URLSearchParams(params)
     if (v && v !== 'ALL') p.set(k, v)
@@ -47,7 +49,29 @@ export default function Members() {
       {loading && !data ? (
         <Loading />
       ) : !data?.members.length ? (
-        <Empty title="No members match" />
+        filtered ? (
+          <Empty
+            title="No members match your filters"
+            action={
+              <Button size="sm" variant="ghost" onClick={clearFilters}>
+                Clear all filters
+              </Button>
+            }
+          >
+            Try a shorter search, or another status or program.
+          </Empty>
+        ) : (
+          <Empty
+            title="No members yet"
+            action={
+              <Link className="ab ab--primary ab--sm" to="/app/admin/import">
+                Import members
+              </Link>
+            }
+          >
+            Members appear here when they register in the app, or when you import your current member list.
+          </Empty>
+        )
       ) : (
         <Card className="tablecard">
           <table className="atable">

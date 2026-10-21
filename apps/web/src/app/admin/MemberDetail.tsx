@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { addDays, api, fmtDay, fmtWhen, istToday, rupees } from '../api'
-import { Button, Card, ErrorNote, Field, Loading, PageHead, Pill, Select, Sheet, TextArea, useAction, useLoad } from '../ui'
+import { Button, Card, Empty, ErrorNote, Field, Loading, PageHead, Pill, Select, Sheet, TextArea, useAction, useLoad } from '../ui'
 
 type Detail = {
   profile: { id: string; name: string; memberCode: string; kind: string; dob: string; emergencyNote: string | null; photoConsent: boolean; createdAt: string }
@@ -65,9 +65,20 @@ export default function MemberDetail() {
               </div>
             ))
           ) : (
-            <p className="muted">No plan yet.</p>
+            <Empty
+              compact
+              title="No plan yet"
+              action={
+                <Button size="sm" variant="ghost" onClick={() => setSheet('pay')}>
+                  Record payment
+                </Button>
+              }
+            >
+              A plan starts when a payment is verified or recorded.
+            </Empty>
           )}
           <h3 className="h4">Membership periods</h3>
+          {!data.memberships.length && <p className="muted small">Each paid month appears here with its dates and any freezes.</p>}
           <ul className="mini">
             {data.memberships.map((m) => (
               <li key={m.id}>
@@ -97,6 +108,7 @@ export default function MemberDetail() {
         </Card>
         <Card>
           <h2 className="h3">Account</h2>
+          {!data.accounts.length && <Empty compact title="No login account">This member's details were removed, or no parent account is linked.</Empty>}
           {data.accounts.map((a) => (
             <div key={a.id} className="kv kv--col">
               <strong>{a.name}</strong>
@@ -113,6 +125,7 @@ export default function MemberDetail() {
           )}
           <p className="small muted">Photo consent: {p.photoConsent ? 'yes' : 'no'}</p>
           <h3 className="h4">Documents accepted</h3>
+          {!data.consents.length && <p className="muted small">Not accepted yet. The member is asked to accept the terms, privacy policy, waiver and refund policy at their next login.</p>}
           <ul className="mini">
             {data.consents.slice(0, 8).map((c, i) => (
               <li key={i}>
@@ -182,8 +195,18 @@ export default function MemberDetail() {
             ))}
             {!data.payments.length && (
               <tr>
-                <td colSpan={6} className="muted">
-                  No payments yet
+                <td colSpan={6}>
+                  <Empty
+                    compact
+                    title="No payments yet"
+                    action={
+                      <Button size="sm" variant="ghost" onClick={() => setSheet('pay')}>
+                        Record payment
+                      </Button>
+                    }
+                  >
+                    UPI payments the member sends and cash you record show here with their receipts.
+                  </Empty>
                 </td>
               </tr>
             )}
@@ -194,6 +217,7 @@ export default function MemberDetail() {
       <div className="grid2">
         <Card>
           <h2 className="h3">Recent bookings</h2>
+          {!data.bookings.length && <Empty compact title="No bookings yet">Classes this member books, attends or misses appear here.</Empty>}
           <ul className="mini">
             {data.bookings.map((b) => (
               <li key={b.id}>
@@ -207,6 +231,7 @@ export default function MemberDetail() {
         </Card>
         <Card>
           <h2 className="h3">Messages sent</h2>
+          {!data.messages.length && <p className="muted small">No messages yet. Reminders, receipts and notices sent to this member are listed here.</p>}
           <ul className="mini">
             {data.messages.map((m, i) => (
               <li key={i}>
@@ -218,6 +243,7 @@ export default function MemberDetail() {
             ))}
           </ul>
           <h3 className="h4">History</h3>
+          {!data.audit.length && <p className="muted small">No changes yet. Payments, freezes and edits for this member are logged here.</p>}
           <ul className="mini">
             {data.audit.slice(0, 12).map((a) => (
               <li key={a.id}>
@@ -256,6 +282,11 @@ export function RecordPayment({ profileId, kind, onClose, onDone }: { profileId:
           </option>
         ))}
       </Select>
+      {plans.data && !usable.length && (
+        <p className="aerror small">
+          No active {kind === 'CHILD' ? 'kids' : 'adult'} plan. <Link to="/app/admin/settings">Add or turn on a plan in Settings</Link> first.
+        </p>
+      )}
       <div className="arow2">
         <Field label="Amount (₹)" inputMode="decimal" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} />
         <Field label="Paid on" type="date" max={istToday()} value={f.paidOn} onChange={(e) => setF({ ...f, paidOn: e.target.value })} />

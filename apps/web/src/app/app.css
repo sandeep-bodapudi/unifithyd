@@ -61,6 +61,10 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: .92em; backgro
 .pill2--online { color: var(--text); border-color: var(--link); background: color-mix(in srgb, var(--blue) 22%, transparent); }
 .pill2--studio { color: var(--text); border-color: var(--green); background: color-mix(in srgb, var(--green) 16%, transparent); }
 .aempty { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 40px 16px; }
+.aempty__body { max-width: 46ch; }
+.aempty__act { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; }
+.aempty--compact { justify-items: start; text-align: left; padding: 8px 0; gap: 4px; }
+.aempty--compact .aempty__act { justify-content: flex-start; margin-top: 2px; }
 .aloading { display: flex; gap: 10px; align-items: center; justify-content: center; padding: 40px; color: var(--text-muted); }
 .hist { list-style: none; padding: 0; margin: 0; }
 .hist__row { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }

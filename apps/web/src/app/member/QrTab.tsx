@@ -1,6 +1,7 @@
 // Check-in QR: refreshes every minute; keeps a day pass for when the phone is offline (ATT-1, 9.1, 9.2)
 import QRCode from 'qrcode'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { ProfileSwitcher, useProfile } from '../App'
 import { useSession } from '../session'
@@ -66,7 +67,19 @@ export default function QrTab() {
     }
   }, [profileId])
 
-  if (!profile) return <Empty title="No profile yet" />
+  if (!profile)
+    return (
+      <Empty
+        title="No one added yet"
+        action={
+          <Link className="ab ab--primary ab--sm" to="/app/me">
+            Add yourself or a child
+          </Link>
+        }
+      >
+        Each person who trains gets their own check-in QR to show at the studio door.
+      </Empty>
+    )
   return (
     <div className="qrpage">
       <PageHead title="My QR" sub="Show this at the studio door" />

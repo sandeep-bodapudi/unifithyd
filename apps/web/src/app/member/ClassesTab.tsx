@@ -39,11 +39,21 @@ export default function ClassesTab() {
   const fits = (c: Cls, kind?: string) => c.program.audience === 'MIXED' || (c.program.audience === 'KIDS' ? kind === 'CHILD' : kind === 'ADULT')
   const list = useMemo(() => (data?.classes ?? []).filter((c) => istDayOf(c.startsAt) === day && fits(c, profile?.kind)), [data, day, profile])
   const siblings = me!.profiles.filter((p) => p.kind === 'CHILD')
+  // Before the early return below: hooks must run in the same order on every render
+  const [note, setNote] = useState<string | null>(null)
+  const nextDay = useMemo(() => days.find((d) => d !== day && (data?.classes ?? []).some((c) => istDayOf(c.startsAt) === d && fits(c, profile?.kind))), [data, day, profile])
 
   if (!profile)
     return (
-      <Empty title="No one to book for yet">
-        Add yourself or a child on the <Link to="/app/me">Me</Link> tab.
+      <Empty
+        title="No one to book for yet"
+        action={
+          <Link className="ab ab--primary ab--sm" to="/app/me">
+            Add yourself or a child
+          </Link>
+        }
+      >
+        Add the person who trains, then book their classes here.
       </Empty>
     )
 
@@ -62,7 +72,6 @@ export default function ClassesTab() {
       return r
     }).then((r) => r && alertReturned(r.returned))
 
-  const [note, setNote] = useState<string | null>(null)
   const alertReturned = (returned: boolean) => setNote(returned ? 'Cancelled. The class is back on your plan.' : 'Cancelled. This was within the cancellation window, so the class is used.')
 
   const plan = summary.data?.plans.find((p) => p.status !== 'DUE') ?? summary.data?.plans[0]
@@ -88,7 +97,18 @@ export default function ClassesTab() {
       {loading && !data ? (
         <Loading />
       ) : list.length === 0 ? (
-        <Empty title="No classes this day">Try another day.</Empty>
+        <Empty
+          title="No classes this day"
+          action={
+            nextDay && (
+              <Button size="sm" variant="ghost" onClick={() => setDay(nextDay)}>
+                Show {new Date(`${nextDay}T00:00:00Z`).toLocaleDateString('en-IN', { weekday: 'long', timeZone: 'UTC' })}
+              </Button>
+            )
+          }
+        >
+          {nextDay ? 'The next classes you can book are on another day this week.' : `No ${profile.kind === 'CHILD' ? 'kids' : 'adult'} classes are open this week yet. New classes are added up to 4 weeks ahead.`}
+        </Empty>
       ) : (
         <ul className="clist">
           {list.map((c) => {
