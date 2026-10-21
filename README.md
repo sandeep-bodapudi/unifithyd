@@ -82,7 +82,7 @@ The API runs on MySQL 8 / MariaDB or PostgreSQL. The scheme of `DATABASE_URL` de
    | Member (adult) | `priya@example.com` | none, code only |
    | Member (parent of two kids) | `parent@example.com` | none, code only |
 
-Free plan limits: the service sleeps after 15 minutes without visits (open it a minute before the demo), and the free database expires after 30 days. The demo data is loaded once, on the first start. Never put real member data in a demo deployment: anyone with the URL can log in as a demo member.
+Free plan limits: Render stops a free service after 15 minutes without visits. `KEEP_AWAKE=true` makes the server ping its own URL (`RENDER_EXTERNAL_URL`, set by Render) every 10 minutes so it stays up; one service running all month fits in the free 750 instance hours, but a second free service in the same workspace would not. If the service does stop (Render restarts or maintenance), the next visit wakes it in about a minute. The free database expires after 30 days. The demo data is loaded once, on the first start. Never put real member data in a demo deployment: anyone with the URL can log in as a demo member.
 
 ## Deploy on Render
 

@@ -7,7 +7,7 @@ services:
     name: unifit-demo
     runtime: node
     region: singapore # closest Render region to Hyderabad
-    plan: free # sleeps after 15 minutes idle; the first visit then takes about a minute
+    plan: free # would sleep after 15 minutes idle; KEEP_AWAKE below prevents that
     buildCommand: npm ci --include=dev && npm run build
     # Free plan has no pre-deploy step: migrate, load plans and demo data (once), then start
     startCommand: npm run db:deploy -w @unifit/api && npm run db:seed -w @unifit/api && npm run demo:data -w @unifit/api && npm start -w @unifit/api
@@ -30,6 +30,8 @@ services:
       - key: DEMO_PASSWORD # password for owner@example.com and coach@example.com (10+ characters)
         sync: false
       - key: JOBS_ENABLED
+        value: "true"
+      - key: KEEP_AWAKE # pings its own URL every 10 minutes so the free service does not sleep
         value: "true"
 
 databases:
