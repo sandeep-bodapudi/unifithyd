@@ -9,6 +9,7 @@ import { env } from './env'
 import { csrfGuard, loadSession } from './lib/auth'
 import { HttpError } from './lib/http'
 import { startJobs } from './jobs'
+import { startKeepAwake } from './keepAwake'
 import { adminRouter } from './routes/admin'
 import { attendanceRouter } from './routes/attendance'
 import { authRouter } from './routes/auth'
@@ -88,4 +89,5 @@ app.use(onError)
 app.listen(env.PORT, () => {
   console.log(`Unifit API on http://localhost:${env.PORT}`)
   if (env.JOBS_ENABLED) startJobs()
+  if (env.KEEP_AWAKE) startKeepAwake()
 })

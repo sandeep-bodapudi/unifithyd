@@ -28,6 +28,14 @@ const schema = z.object({
     .string()
     .default('true')
     .transform((v) => v !== 'false'),
+  // Render free plan: ping our own public URL so the service never idles long enough to sleep.
+  // Render sets RENDER_EXTERNAL_URL; KEEP_AWAKE_URL overrides it on other hosts.
+  KEEP_AWAKE: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
+  KEEP_AWAKE_URL: z.string().url().optional(),
+  RENDER_EXTERNAL_URL: z.string().url().optional(),
 })
 
 export const env = schema.parse(process.env)
