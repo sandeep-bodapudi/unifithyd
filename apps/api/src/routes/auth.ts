@@ -3,7 +3,7 @@ import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 import { z } from 'zod'
 import { prisma } from '../db'
-import { env, isProd } from '../env'
+import { showCodes } from '../env'
 import { audit } from '../lib/audit'
 import { endSession, isStaff, requireAuth, startSession } from '../lib/auth'
 import { hashCode, safeEqual, sixDigits, verifyPassword } from '../lib/crypto'
@@ -85,7 +85,7 @@ async function issueCode(accountId: string, purpose: 'login' | 'staff') {
     data: { accountId, channel: 'EMAIL', purpose, codeHash: hashCode(accountId, code), expiresAt: new Date(Date.now() + 10 * 60_000) },
   })
   await sendMessage({ accountId, template: 'login_code', data: { code }, dedupeKey: `code:${row.id}` })
-  return !isProd && env.DEV_SHOW_CODES ? { devCode: code } : {}
+  return showCodes ? { devCode: code } : {}
 }
 
 authRouter.post(

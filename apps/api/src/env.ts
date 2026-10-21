@@ -18,6 +18,12 @@ const schema = z.object({
     .string()
     .default('false')
     .transform((v) => v === 'true'),
+  // Client demos on a public URL with sample data only: shows login codes on screen even in
+  // production (with DEV_SHOW_CODES=true) and generates the QR key if none is set. Never for real members.
+  DEMO_MODE: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
   JOBS_ENABLED: z
     .string()
     .default('true')
@@ -26,3 +32,5 @@ const schema = z.object({
 
 export const env = schema.parse(process.env)
 export const isProd = env.NODE_ENV === 'production'
+/** Return login codes in API responses (development, or a demo deployment) */
+export const showCodes = env.DEV_SHOW_CODES && (!isProd || env.DEMO_MODE)

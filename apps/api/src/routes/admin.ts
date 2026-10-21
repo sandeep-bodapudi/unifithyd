@@ -368,8 +368,8 @@ adminRouter.post(
     const code = sixDigits()
     const row = await prisma.loginCode.create({ data: { accountId: acc.id, channel: 'EMAIL', purpose: 'upi-change', codeHash: hashCode(acc.id, code), expiresAt: new Date(Date.now() + 10 * 60_000) } })
     await sendMessage({ accountId: acc.id, template: 'login_code', data: { code }, dedupeKey: `code:${row.id}` })
-    const { env, isProd } = await import('../env')
-    res.json({ ok: true, ...(!isProd && env.DEV_SHOW_CODES ? { devCode: code } : {}) })
+    const { showCodes } = await import('../env')
+    res.json({ ok: true, ...(showCodes ? { devCode: code } : {}) })
   }),
 )
 

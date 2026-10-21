@@ -67,9 +67,26 @@ The API runs on MySQL 8 / MariaDB or PostgreSQL. The scheme of `DATABASE_URL` de
 - When you change the schema, create the migration for both databases: run `npm run db:migrate -w @unifit/api -- --name <change>` once with a MySQL URL and once with a PostgreSQL URL, and commit both folders.
 - In production, apply migrations with `npm run db:deploy -w @unifit/api`.
 
+## Client demo on Render (free)
+
+`render.yaml` deploys a demo on Render's free plans with made-up sample data: members (adults and a parent with two children), a weekly timetable with past attendance and upcoming bookings, verified and pending UPI payments, receipts and leads.
+
+1. Render dashboard: **New**, then **Blueprint**, then pick this repository and branch. Enter a `DEMO_PASSWORD` (10+ characters) when asked.
+2. Wait for the deploy to show **Live** (first build takes about 5 to 10 minutes), then open the service URL.
+3. Log in at `/app`. Login codes appear on screen under the code field (`DEMO_MODE`), so no email setup is needed:
+
+   | Role | Email | Password |
+   | --- | --- | --- |
+   | Owner / admin | `owner@example.com` | your `DEMO_PASSWORD` |
+   | Coach | `coach@example.com` | your `DEMO_PASSWORD` |
+   | Member (adult) | `priya@example.com` | none, code only |
+   | Member (parent of two kids) | `parent@example.com` | none, code only |
+
+Free plan limits: the service sleeps after 15 minutes without visits (open it a minute before the demo), and the free database expires after 30 days. The demo data is loaded once, on the first start. Never put real member data in a demo deployment: anyone with the URL can log in as a demo member.
+
 ## Deploy on Render
 
-`render.yaml` is a Render Blueprint. It creates one web service and a PostgreSQL database in Singapore. The web service runs the API and also serves the built website and app, so everything is on one domain and the app's relative `/api` calls and login cookies work without a proxy.
+`render.production.yaml` is the Render Blueprint for the real studio. It creates one web service and a PostgreSQL database in Singapore. The web service runs the API and also serves the built website and app, so everything is on one domain and the app's relative `/api` calls and login cookies work without a proxy.
 
 1. Generate the QR signing key on your computer and keep it safe. If it changes, every QR code already issued stops working:
 
@@ -77,7 +94,7 @@ The API runs on MySQL 8 / MariaDB or PostgreSQL. The scheme of `DATABASE_URL` de
    node -e "const {privateKey}=require('crypto').generateKeyPairSync('ed25519');console.log(Buffer.from(privateKey.export({type:'pkcs8',format:'pem'})).toString('base64'))"
    ```
 
-2. Render dashboard: **New**, then **Blueprint**, then pick this repository and branch. When asked, paste `QR_PRIVATE_KEY` and `RESEND_API_KEY`. `APP_SECRET` is generated for you. Set `MAIL_FROM` to an address on a domain verified in Resend.
+2. Render dashboard: **New**, then **Blueprint**, then pick this repository and branch, and set **Blueprint Path** to `render.production.yaml`. When asked, paste `QR_PRIVATE_KEY` and `RESEND_API_KEY`. `APP_SECRET` is generated for you. Set `MAIL_FROM` to an address on a domain verified in Resend.
 3. Every deploy builds the website and API, runs `prisma migrate deploy` (pre-deploy step), then starts the server. Check `https://<service>.onrender.com/api/health` for `{"ok":true,"db":"up"}`.
 4. Once only: load the plans and create the owner from the service's **Shell** tab:
 
@@ -91,7 +108,7 @@ The API runs on MySQL 8 / MariaDB or PostgreSQL. The scheme of `DATABASE_URL` de
 
 5. Add your domain under the service's **Settings**, then **Custom Domains**.
 
-Plans in the Blueprint: the web service is **Starter** because the free plan has no disk and no pre-deploy step, and free instances sleep, which stops the 5-minute jobs (reminders, no-shows, expiry notices). Payment screenshots are kept on the 1 GB disk mounted at `.data`. The database is **basic-256mb**; change the plans in `render.yaml` if you need to.
+Plans in the Blueprint: the web service is **Starter** because the free plan has no disk and no pre-deploy step, and free instances sleep, which stops the 5-minute jobs (reminders, no-shows, expiry notices). Payment screenshots are kept on the 1 GB disk mounted at `.data`. The database is **basic-256mb**; change the plans in `render.production.yaml` if you need to.
 
 ## What is built (PRD v3.0)
 

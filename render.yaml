@@ -1,19 +1,17 @@
-# Render Blueprint: one web service (API + website + app on the same origin) and a PostgreSQL database.
-# Render dashboard -> New -> Blueprint -> pick this repo. You are asked for the values marked sync: false.
+# Render Blueprint for a CLIENT DEMO on Render's free plans, preloaded with made-up sample data.
+# Render dashboard -> New -> Blueprint -> this repo. You are asked for DEMO_PASSWORD.
+# Login codes are shown on screen (no email needed). Use sample data only: anyone with the URL
+# can log in as a demo member. For the real studio use render.production.yaml instead.
 services:
   - type: web
-    name: unifit
+    name: unifit-demo
     runtime: node
     region: singapore # closest Render region to Hyderabad
-    plan: starter # paid: needed for the disk, pre-deploy migrations and the 5-minute jobs (free instances sleep)
+    plan: free # sleeps after 15 minutes idle; the first visit then takes about a minute
     buildCommand: npm ci --include=dev && npm run build
-    preDeployCommand: npm run db:deploy -w @unifit/api
-    startCommand: npm start -w @unifit/api
+    # Free plan has no pre-deploy step: migrate, load plans and demo data (once), then start
+    startCommand: npm run db:deploy -w @unifit/api && npm run db:seed -w @unifit/api && npm run demo:data -w @unifit/api && npm start -w @unifit/api
     healthCheckPath: /api/health
-    disk:
-      name: data
-      mountPath: /opt/render/project/src/.data # payment screenshots (.data/uploads)
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "24"
@@ -21,25 +19,23 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: unifit-db
+          name: unifit-demo-db
           property: connectionString
       - key: APP_SECRET
         generateValue: true
-      - key: QR_PRIVATE_KEY # base64 Ed25519 PKCS8 PEM; command in README "Deploy on Render"
-        sync: false
-      - key: RESEND_API_KEY # without it nobody receives login codes
-        sync: false
-      - key: MAIL_FROM
-        value: Unifit.hyd <no-reply@unifithyd.com>
-      - key: JOBS_ENABLED
+      - key: DEMO_MODE
         value: "true"
       - key: DEV_SHOW_CODES
-        value: "false"
+        value: "true"
+      - key: DEMO_PASSWORD # password for owner@example.com and coach@example.com (10+ characters)
+        sync: false
+      - key: JOBS_ENABLED
+        value: "true"
 
 databases:
-  - name: unifit-db
+  - name: unifit-demo-db
     databaseName: unifit
     user: unifit
     region: singapore
-    plan: basic-256mb
+    plan: free # expires 30 days after creation
     postgresMajorVersion: "16"

@@ -1,0 +1,46 @@
+# Render Blueprint for PRODUCTION: one web service (API + website + app on the same origin) and PostgreSQL.
+# Render dashboard -> New -> Blueprint -> this repo, with Blueprint Path set to render.production.yaml.
+# You are asked for the values marked sync: false.
+services:
+  - type: web
+    name: unifit
+    runtime: node
+    region: singapore # closest Render region to Hyderabad
+    plan: starter # paid: needed for the disk, pre-deploy migrations and the 5-minute jobs (free instances sleep)
+    buildCommand: npm ci --include=dev && npm run build
+    preDeployCommand: npm run db:deploy -w @unifit/api
+    startCommand: npm start -w @unifit/api
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/.data # payment screenshots (.data/uploads)
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unifit-db
+          property: connectionString
+      - key: APP_SECRET
+        generateValue: true
+      - key: QR_PRIVATE_KEY # base64 Ed25519 PKCS8 PEM; command in README "Deploy on Render"
+        sync: false
+      - key: RESEND_API_KEY # without it nobody receives login codes
+        sync: false
+      - key: MAIL_FROM
+        value: Unifit.hyd <no-reply@unifithyd.com>
+      - key: JOBS_ENABLED
+        value: "true"
+      - key: DEV_SHOW_CODES
+        value: "false"
+
+databases:
+  - name: unifit-db
+    databaseName: unifit
+    user: unifit
+    region: singapore
+    plan: basic-256mb
+    postgresMajorVersion: "16"

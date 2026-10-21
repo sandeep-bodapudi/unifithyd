@@ -13,7 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "test": "node --import tsx --test src/**/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "owner:create": "tsx src/scripts/create-owner.ts"
+    "owner:create": "tsx src/scripts/create-owner.ts",
+    "demo:data": "tsx src/scripts/demo-data.ts"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
